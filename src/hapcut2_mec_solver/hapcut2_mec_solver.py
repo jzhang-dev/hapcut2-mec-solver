@@ -11,14 +11,16 @@ import tempfile
 import pandas as pd
 
 # Type aliases
-AlleleMatrix = Sequence[Sequence[int]]
+Fragment = Sequence[int]
+Haplotype = Sequence[int]
+AlleleMatrix = Sequence[Fragment]
 
 
 @dataclass
 class _MECSolverResult:
-    haplotypes: tuple[Sequence[int], Sequence[int]]
-    # partition: Sequence[int]
-    # cost: float
+    haplotypes: tuple[Haplotype, Haplotype]
+    partition: Sequence[int]
+    cost: float
 
 
 class MECSolver:
@@ -126,7 +128,7 @@ class MECSolver:
     def _run_hapcut2(
         self, fragments_path: str, vcf_path: str, output_path: str, *, prune=False
     ) -> None:
-        directory = os.path.commonprefix([fragments_path, vcf_path, output_path]) 
+        directory = os.path.commonprefix([fragments_path, vcf_path, output_path])
         command = [
             "docker",
             "run",
@@ -154,7 +156,7 @@ class MECSolver:
         #     raise RuntimeError(f"Failed to run HapCUT2: \n{process.stderr}")
 
     @staticmethod
-    def _parse_hapcut2_result(file_path: str) -> _MECSolverResult:
+    def _parse_hapcut2_result(file_path: str) -> tuple[Haplotype, Haplotype]:
         haplotype_0: list[int] = []
         haplotype_1: list[int] = []
 
@@ -169,7 +171,33 @@ class MECSolver:
                     haplotype_0.append(int(columns[1]) if columns[1] != "-" else -1)
                     haplotype_1.append(int(columns[2]) if columns[2] != "-" else -1)
 
-        return _MECSolverResult((tuple(haplotype_0), tuple(haplotype_1)))
+        return (haplotype_0, haplotype_1)
+
+    @staticmethod
+    def _get_cost(haplotype: Haplotype, fragment: Fragment) -> int:
+        return sum(
+            haplotype_allele != fragment_allele
+            for haplotype_allele, fragment_allele in zip(haplotype, fragment)
+        )
+
+    def _partition_fragments(self, haplotypes) -> tuple[Sequence[int], float]:
+        n_fragment, n_variant = self.n_fragment, self.n_variant
+        n_haplotype = len(haplotypes)
+        partition: list[int] = []
+        total_cost:float = 0
+        for fragment in self.matrix:
+            min_cost = float('inf')
+            haplotype_index:int = -1
+            for i, haplotype in enumerate(haplotypes):
+                cost = self._get_cost(haplotype, fragment)
+                if cost < min_cost:
+                    min_cost = cost
+                    haplotype_index = i
+            partition.append(haplotype_index)
+            total_cost += min_cost
+        return partition, total_cost
+            
+
 
     def solve(self) -> _MECSolverResult:
         with tempfile.TemporaryDirectory() as temp_directory:
@@ -179,12 +207,13 @@ class MECSolver:
             self._make_vcf(self.n_variant, vcf_path)
             self._make_fragments(fragments_path)
             self._run_hapcut2(fragments_path, vcf_path, output_path)
-            result = self._parse_hapcut2_result(output_path)
-            return result
+            haplotypes = self._parse_hapcut2_result(output_path)
+            partition, cost = self._partition_fragments(haplotypes)
+            return _MECSolverResult(haplotypes=haplotypes, partition=partition, cost=cost)
 
 
 def solve_MEC(allele_matrix: AlleleMatrix) -> tuple[Sequence[int], Sequence[int]]:
     solver = MECSolver(allele_matrix)
     result = solver.solve()
     haplotype_1, haplotype_2 = result.haplotypes
-    return haplotype_1, haplotype_2
+    return tuple(haplotype_1), tuple(haplotype_2)
