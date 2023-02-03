@@ -133,4 +133,4 @@ dmypy.json
 sandbox/
 
 # Dev env
-dev/env
+bin/

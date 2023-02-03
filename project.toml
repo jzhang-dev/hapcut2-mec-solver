@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hapcut2_mec_solver"
-description = "A Python wrapper around HAPCUT2 to solve abstract minimum error correction (MEC) problems."
+description = "A Python wrapper around HapCUT2 to solve abstract minimum error correction (MEC) problems."
 readme = "README.md"
 version = "0.1.0"
 requires-python = ">=3.8"
