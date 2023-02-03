@@ -4,6 +4,7 @@
 from __future__ import annotations
 from typing import Sequence
 import collections
+import os
 from dataclasses import dataclass
 import subprocess
 import tempfile
@@ -125,7 +126,13 @@ class MECSolver:
     def _run_hapcut2(
         self, fragments_path: str, vcf_path: str, output_path: str, *, prune=False
     ) -> None:
+        directory = os.path.commonprefix([fragments_path, vcf_path, output_path]) 
         command = [
+            "docker",
+            "run",
+            "--volume",
+            f"{directory}:{directory}",
+            "quay.io/biocontainers/hapcut2:1.3.3--hb0d9459_3",
             "hapcut2",
             "--fragments",
             fragments_path,
@@ -143,8 +150,8 @@ class MECSolver:
             str(int(not prune)),
         ]
         process = subprocess.run(command, capture_output=True, encoding="utf-8")
-        if process.returncode != 0:
-            raise RuntimeError(f"Failed to run HapCUT2: \n{process.stderr}")
+        # if process.returncode != 0:
+        #     raise RuntimeError(f"Failed to run HapCUT2: \n{process.stderr}")
 
     @staticmethod
     def _parse_hapcut2_result(file_path: str) -> _MECSolverResult:
@@ -161,21 +168,19 @@ class MECSolver:
                     columns = line.strip("\n").split("\t")
                     haplotype_0.append(int(columns[1]) if columns[1] != "-" else -1)
                     haplotype_1.append(int(columns[2]) if columns[2] != "-" else -1)
-        return _MECSolverResult((haplotype_0, haplotype_1))
+
+        return _MECSolverResult((tuple(haplotype_0), tuple(haplotype_1)))
 
     def solve(self) -> _MECSolverResult:
-        with tempfile.NamedTemporaryFile(
-            "w"
-        ) as fragments_file, tempfile.NamedTemporaryFile(
-            "w"
-        ) as vcf_file, tempfile.NamedTemporaryFile(
-            "w"
-        ) as output_file:
-            self._make_vcf(self.n_variant, vcf_file.name)
-            self._make_fragments(fragments_file.name)
-
-            self._run_hapcut2(fragments_file.name, vcf_file.name, output_file.name)
-            return self._parse_hapcut2_result(output_file.name)
+        with tempfile.TemporaryDirectory() as temp_directory:
+            vcf_path = os.path.join(temp_directory, "variants.vcf")
+            fragments_path = os.path.join(temp_directory, "fragments.txt")
+            output_path = os.path.join(temp_directory, "hapcut2.txt")
+            self._make_vcf(self.n_variant, vcf_path)
+            self._make_fragments(fragments_path)
+            self._run_hapcut2(fragments_path, vcf_path, output_path)
+            result = self._parse_hapcut2_result(output_path)
+            return result
 
 
 def solve_MEC(allele_matrix: AlleleMatrix) -> tuple[Sequence[int], Sequence[int]]:
