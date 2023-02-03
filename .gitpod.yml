@@ -1,0 +1,10 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - name: Install development dependencies
+    init: |
+      pip install -v -r dev/requirements.txt
+  - name: Install library for development
+    init: | 
+      pip install -ve .
