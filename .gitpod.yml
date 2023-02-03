@@ -4,7 +4,7 @@ image:
 tasks:
   - name: Install development dependencies
     init: |
-      mamba env create -f dev/conda.yaml -p dev/env -y
+      mamba env create -f dev/conda.yml -p dev/env
       
   - name: Install library for development
     init: | 
