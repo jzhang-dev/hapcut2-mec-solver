@@ -13,3 +13,4 @@ jobs:
     - name: Run tests
       run: |
         docker run --rm  hapcut2_mec_solver tests/test.sh
+        docker run -i --rm hapcut2_mec_solver python -m hapcut2_mec_solver < tests/test.json

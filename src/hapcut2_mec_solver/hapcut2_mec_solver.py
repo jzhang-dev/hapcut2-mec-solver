@@ -6,6 +6,7 @@ from typing import Sequence
 import collections
 import os
 from dataclasses import dataclass
+import json
 import subprocess
 import tempfile
 import pandas as pd
@@ -21,6 +22,15 @@ class _MECSolverResult:
     haplotypes: tuple[Haplotype, Haplotype]
     partition: Sequence[int]
     cost: float
+
+    def to_json(self):
+        return json.dumps(
+            dict(
+                haplotypes=[list(haplotype) for haplotype in self.haplotypes],
+                partition=list(self.partition),
+                cost=self.cost,
+            )
+        )
 
 
 class MECSolver:
@@ -129,28 +139,6 @@ class MECSolver:
         self, fragments_path: str, vcf_path: str, output_path: str, *, prune=False
     ) -> None:
         directory = os.path.commonprefix([fragments_path, vcf_path, output_path])
-        command = [
-            "docker",
-            "run",
-            "--volume",
-            f"{directory}:{directory}",
-            "quay.io/biocontainers/hapcut2:1.3.3--hb0d9459_3",
-            "hapcut2",
-            "--fragments",
-            fragments_path,
-            "--VCF",
-            vcf_path,
-            "--output",
-            output_path,
-            "--outvcf",
-            "0",
-            "--new_format",
-            "1",
-            "--verbose",
-            "0",
-            "--error_analysis_mode",
-            str(int(not prune)),
-        ]
         command = [
             "hapcut2",
             "--fragments",

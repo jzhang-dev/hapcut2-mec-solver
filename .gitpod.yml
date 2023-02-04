@@ -2,9 +2,10 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - name: Install HapCUT2
+  - name: Build Docker image
     init: |
       docker pull quay.io/biocontainers/hapcut2:1.3.3--hb0d9459_3
+      docker build -t hapcut2_mec_solver .
       
   - name: Install development dependencies
     init: |
