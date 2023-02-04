@@ -13,5 +13,5 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "pandas"
+    "pandas >= 1.5.3"
 ]

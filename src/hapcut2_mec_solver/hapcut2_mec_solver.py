@@ -151,6 +151,23 @@ class MECSolver:
             "--error_analysis_mode",
             str(int(not prune)),
         ]
+        command = [
+            "hapcut2",
+            "--fragments",
+            fragments_path,
+            "--VCF",
+            vcf_path,
+            "--output",
+            output_path,
+            "--outvcf",
+            "0",
+            "--new_format",
+            "1",
+            "--verbose",
+            "0",
+            "--error_analysis_mode",
+            str(int(not prune)),
+        ]
         process = subprocess.run(command, capture_output=True, encoding="utf-8")
         # if process.returncode != 0:
         #     raise RuntimeError(f"Failed to run HapCUT2: \n{process.stderr}")
@@ -184,10 +201,10 @@ class MECSolver:
         n_fragment, n_variant = self.n_fragment, self.n_variant
         n_haplotype = len(haplotypes)
         partition: list[int] = []
-        total_cost:float = 0
+        total_cost: float = 0
         for fragment in self.matrix:
-            min_cost = float('inf')
-            haplotype_index:int = -1
+            min_cost = float("inf")
+            haplotype_index: int = -1
             for i, haplotype in enumerate(haplotypes):
                 cost = self._get_cost(haplotype, fragment)
                 if cost < min_cost:
@@ -196,8 +213,6 @@ class MECSolver:
             partition.append(haplotype_index)
             total_cost += min_cost
         return partition, total_cost
-            
-
 
     def solve(self) -> _MECSolverResult:
         with tempfile.TemporaryDirectory() as temp_directory:
@@ -209,7 +224,9 @@ class MECSolver:
             self._run_hapcut2(fragments_path, vcf_path, output_path)
             haplotypes = self._parse_hapcut2_result(output_path)
             partition, cost = self._partition_fragments(haplotypes)
-            return _MECSolverResult(haplotypes=haplotypes, partition=partition, cost=cost)
+            return _MECSolverResult(
+                haplotypes=haplotypes, partition=partition, cost=cost
+            )
 
 
 def solve_MEC(allele_matrix: AlleleMatrix) -> tuple[Sequence[int], Sequence[int]]:

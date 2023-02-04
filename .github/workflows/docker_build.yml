@@ -1,0 +1,13 @@
+name: Build and test Docker image
+
+on: [push]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build Docker image
+      run: |
+        docker build -t hapcut2_mec_solver .
+        docker run --rm  hapcut2_mec_solver tests/test.sh
