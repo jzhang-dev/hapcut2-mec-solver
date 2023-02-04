@@ -3,7 +3,7 @@ name: Build and test Docker image
 on: [push]
 
 jobs:
-  pytest:
+  docker_build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
