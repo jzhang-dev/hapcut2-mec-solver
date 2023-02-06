@@ -36,6 +36,13 @@ class _MECSolverResult:
 class MECSolver:
     def __init__(self, matrix: AlleleMatrix):
         self.matrix: AlleleMatrix = matrix
+        empty_variants:list[int] = []
+        for j in range(self.n_variant):
+            if all(matrix[i][j] < 0 for i in range(self.n_fragment)):
+                empty_variants.append(j)
+        self._empty_variants = empty_variants
+        
+
 
     @property
     def n_variant(self) -> int:
@@ -160,8 +167,8 @@ class MECSolver:
         # if process.returncode != 0:
         #     raise RuntimeError(f"Failed to run HapCUT2: \n{process.stderr}")
 
-    @staticmethod
-    def _parse_hapcut2_result(file_path: str) -> tuple[Haplotype, Haplotype]:
+
+    def _parse_hapcut2_result(self, file_path: str) -> tuple[Haplotype, Haplotype]:
         haplotype_0: list[int] = []
         haplotype_1: list[int] = []
 
@@ -176,12 +183,17 @@ class MECSolver:
                     haplotype_0.append(int(columns[1]) if columns[1] != "-" else -1)
                     haplotype_1.append(int(columns[2]) if columns[2] != "-" else -1)
 
-        return (haplotype_0, haplotype_1)
+        for j in self._empty_variants:
+            haplotype_0.insert(j, -1)
+            haplotype_1.insert(j, -1)
+
+        return (tuple(haplotype_0), tuple(haplotype_1))
+
 
     @staticmethod
     def _get_cost(haplotype: Haplotype, fragment: Fragment) -> int:
         return sum(
-            haplotype_allele != fragment_allele
+            fragment_allele >= 0 and haplotype_allele != fragment_allele
             for haplotype_allele, fragment_allele in zip(haplotype, fragment)
         )
 
@@ -200,7 +212,7 @@ class MECSolver:
                     haplotype_index = i
             partition.append(haplotype_index)
             total_cost += min_cost
-        return partition, total_cost
+        return tuple(partition), total_cost
 
     def solve(self) -> _MECSolverResult:
         with tempfile.TemporaryDirectory() as temp_directory:

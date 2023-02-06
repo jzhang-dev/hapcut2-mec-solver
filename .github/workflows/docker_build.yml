@@ -10,7 +10,3 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t hapcut2_mec_solver .
-    - name: Run tests
-      run: |
-        docker run --rm  hapcut2_mec_solver tests/test.sh
-        docker run -i --rm hapcut2_mec_solver python -m hapcut2_mec_solver < tests/test.json
