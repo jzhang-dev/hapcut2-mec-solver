@@ -4,7 +4,7 @@ Solve general minimum error correction (MEC) problems using [HapCUT2](https://gi
 
 ## Usage
 
-HapCUT2 MEC solver uses the [JSON format](https://en.wikipedia.org/wiki/JSON) for input and output. The input JSON file should contain a two-dimentional matrix, with each row representing a fragment, and each column representing a variant. Allowed values are 0 (Allele 0), 1 (Allele 1) and -1 (unknown allele). 
+HapCUT2 MEC solver uses the [JSON format](https://en.wikipedia.org/wiki/JSON) for input and output. The input JSON file should contain a two-dimentional matrix, with each row representing a fragment, and each column representing a variant. Allowed values are `0` (Allele 0), `1` (Allele 1) and `-1` (unknown allele). 
 
 For example, the following is a valid JSON input file with three variants and four fragments:
 
@@ -86,6 +86,7 @@ pytest
 ## Notes about HapCUT2
 
 - HapCUT2 assumes all variants are heterozygous even if only one allele is seen in the fragments. For example, fragments `[[1, 0, 1], [1, 0, 1], [0, 1, 1]]` will be solved as haplotypes `[[1, 0, 1], [0, 1, 0]]`. 
+- Fragments that contain only `-1` will be assigned arbitrarily to one haplotype. Variants that contain only `-1` will show as `-1` in the output haplotypes. 
 - HapCUT2 harnesses a heuristic algorithm to appoach the $\mathcal{NP}$-hard MEC problem. HapCUT2 is not guaranteed to find the theoretically optimal solution. In contrast, [WhatsHap](https://whatshap.readthedocs.io/en/latest/) always finds the theoretically optimal solution with the lowest cost, but has $\mathit{O}(exp(n))$ time complexity, where $n$ is the maximum coverage of the variants. See also [WhatsHap wMEC solver](https://github.com/jzhang-dev/whatshap-wmec-solver).
 
 ## References
