@@ -29,14 +29,14 @@ The output for the input matrix above will be:
 Pull image from Docker Hub:
 
 ```sh
-docker pull jzhang0246/hapcut2-mec-solver:0.1
+docker pull jzhang0246/hapcut2-mec-solver:latest
 ```
 
 Example usage: 
 
 ```sh
 # The input JSON can be supplied via STDIN
-docker run -i --rm jzhang0246/hapcut2-mec-solver:0.1 python -m hapcut2_mec_solver < example.json
+docker run -i --rm jzhang0246/hapcut2-mec-solver:latest python -m hapcut2_mec_solver < example.json
 # Alternatively, the input JSON can be used directly as an argment surrounded by single or double quotes. 
 docker run -i --rm hapcut2_mec_solver python -m hapcut2_mec_solver '[[1, 0, 1], [0, 1, 0]]'
 ```
@@ -44,7 +44,7 @@ docker run -i --rm hapcut2_mec_solver python -m hapcut2_mec_solver '[[1, 0, 1], 
 Run tests:
 
 ```sh
-docker run -i --rm jzhang0246/hapcut2-mec-solver:0.1 pytest
+docker run -i --rm jzhang0246/hapcut2-mec-solver:latest pytest
 ```
 
 ### Python integration
