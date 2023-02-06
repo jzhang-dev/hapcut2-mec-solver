@@ -83,10 +83,10 @@ pytest
 ```
 
 
-## Notes about HapCUT2
+## Notes
 
 - HapCUT2 assumes all variants are heterozygous even if only one allele is seen in the fragments. For example, fragments `[[1, 0, 1], [1, 0, 1], [0, 1, 1]]` will be solved as haplotypes `[[1, 0, 1], [0, 1, 0]]`. 
-- Fragments that contain only `-1` will be assigned arbitrarily to one haplotype. Variants that contain only `-1` will show as `-1` in the output haplotypes. 
+- Fragments that contain only `-1` will be assigned `-1` in the output partitions. Variants that contain only `-1` will show as `-1` in the output haplotypes. 
 - HapCUT2 harnesses a heuristic algorithm to appoach the $\mathcal{NP}$-hard MEC problem. HapCUT2 is not guaranteed to find the theoretically optimal solution. In contrast, [WhatsHap](https://whatshap.readthedocs.io/en/latest/) always finds the theoretically optimal solution with the lowest cost, but has $\mathit{O}(exp(n))$ time complexity, where $n$ is the maximum coverage of the variants. See also [WhatsHap wMEC solver](https://github.com/jzhang-dev/whatshap-wmec-solver).
 
 ## References

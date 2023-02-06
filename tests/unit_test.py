@@ -65,4 +65,4 @@ def test_empty_fragments():
     allele_matrix = [[0, 1, 1], [1, 0, 0], [-1, -1, -1], [-1, -1, -1]]
     result = MECSolver(allele_matrix).solve()
     assert set(result.haplotypes) == {(0, 1, 1), (1, 0, 0)}
-    assert len(result.partition) == len(allele_matrix) 
+    assert result.partition in ((0, 1, -1, -1), (1, 0, -1, -1))

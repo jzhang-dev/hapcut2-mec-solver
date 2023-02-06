@@ -203,6 +203,9 @@ class MECSolver:
         partition: list[int] = []
         total_cost: float = 0
         for fragment in self.matrix:
+            if all(allele < 0 for allele in fragment):
+                partition.append(-1)
+                continue
             min_cost = float("inf")
             haplotype_index: int = -1
             for i, haplotype in enumerate(haplotypes):
