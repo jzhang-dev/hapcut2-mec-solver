@@ -14,3 +14,7 @@ tasks:
   - name: Install library for development
     init: | 
       pip install -ve .
+
+  - name: Log in to Docker Hub
+    command: |
+      echo $DOCKER_HUB_TOKEN | docker login -u jzhang0246 --password-stdin
