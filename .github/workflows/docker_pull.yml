@@ -1,0 +1,15 @@
+name: Pull image from Docker Hub and run tests
+
+on: [push]
+
+jobs:
+  docker_pull:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Pull Docker image
+      run: |
+        docker pull jzhang0246/hapcut2-mec-solver:latest
+    - name: Run tests
+      run: |
+        docker run -i --rm jzhang0246/hapcut2-mec-solver:latest pytest

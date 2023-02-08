@@ -38,7 +38,7 @@ Example usage:
 # The input JSON can be supplied via STDIN
 docker run -i --rm jzhang0246/hapcut2-mec-solver:latest python -m hapcut2_mec_solver < example.json
 # Alternatively, the input JSON can be used directly as an argment surrounded by single or double quotes. 
-docker run -i --rm hapcut2_mec_solver python -m hapcut2_mec_solver '[[1, 0, 1], [0, 1, 0]]'
+docker run -i --rm jzhang0246/hapcut2-mec-solver:latest python -m hapcut2_mec_solver '[[1, 0, 1], [0, 1, 0]]'
 ```
 
 Run tests:
