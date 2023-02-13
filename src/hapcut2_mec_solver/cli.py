@@ -7,9 +7,6 @@ from typing import Sequence
 from .hapcut2_mec_solver import AlleleMatrix, MECSolver
 
 
-def load_stdin():
-    return sys.stdin.read()
-
 
 def parse_cli_arguments(args=None) -> AlleleMatrix:
     parser = argparse.ArgumentParser(
@@ -17,21 +14,10 @@ def parse_cli_arguments(args=None) -> AlleleMatrix:
         description="A Python wrapper around HapCUT2 to solve general minimum error correction (MEC) problems.",
         epilog="",
     )
-    parser.add_argument("matrix", metavar="ALLELE_MATRIX", nargs="?", default="")
+    parser.add_argument("matrix", metavar="ALLELE_MATRIX", default="", help="The allele matrix file in json or npz format, with each row representing a fragment and each column representing a variant. Alternatively, the allele matrix can be supplied as a JSON string wrapped in quotes.")
     args = parser.parse_args(args)
 
     fragments: Sequence[Sequence[int]] = []
-    if args.matrix == "":
-        stdin = load_stdin()
-        if not stdin:
-            raise RuntimeError(
-            "Please specify ALLELE_MATRIX as an argument or through STDIN."
-        )
-        fragments = json.loads(load_stdin())
-        matrix = AlleleMatrix.from_fragments(fragments)
-        return matrix
-    
-    
     try:
         fragments = json.loads(args.matrix)
     except Exception:
@@ -51,9 +37,6 @@ def parse_cli_arguments(args=None) -> AlleleMatrix:
         return matrix
     else:
         raise ValueError(f"Invalid file extension: {extension!r}. Expecting .json or .npz format.")
-
-
-    raise RuntimeError("Invalid arguments")
 
 
 def main(args=None, file=sys.stdout):

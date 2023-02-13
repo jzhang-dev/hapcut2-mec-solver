@@ -35,16 +35,36 @@ docker pull jzhang0246/hapcut2-mec-solver:latest
 Example usage: 
 
 ```sh
-# The input JSON can be supplied via STDIN
-docker run -i --rm jzhang0246/hapcut2-mec-solver:latest python -m hapcut2_mec_solver < example.json
-# Alternatively, the input JSON can be used directly as an argment surrounded by single or double quotes. 
-docker run -i --rm jzhang0246/hapcut2-mec-solver:latest python -m hapcut2_mec_solver '[[1, 0, 1], [0, 1, 0]]'
+# The input allele matrix can be supplied as a JSON file
+docker run \
+  --rm \
+  -v "$(pwd)"/tests:/data \
+  jzhang0246/hapcut2-mec-solver:latest \
+    python -m hapcut2_mec_solver \
+      /data/test.json
+
+# ... or as a npz file containing a sparse matrix 
+# (see https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.load_npz.html#scipy-sparse-load-npz)
+docker run \
+  --rm \
+  -v "$(pwd)"/tests:/data \
+  jzhang0246/hapcut2-mec-solver:latest \
+    python -m hapcut2_mec_solver \
+      /data/test.npz
+
+
+# Alternatively, supply the matrix as a JSON string surrounded by single or double quotes. 
+docker run \
+  --rm 
+  jzhang0246/hapcut2-mec-solver:latest \
+    python -m hapcut2_mec_solver \
+      '[[1, 0, 1], [0, 1, 0]]'
 ```
 
 Run tests:
 
 ```sh
-docker run -i --rm jzhang0246/hapcut2-mec-solver:latest pytest
+docker run --rm jzhang0246/hapcut2-mec-solver:latest pytest
 ```
 
 ### Python integration
@@ -78,7 +98,10 @@ True
 Run tests:
 
 ```sh
+git clone https://github.com/jzhang-dev/hapcut2-mec-solver
 cd hapcut2-mec-solver
+pip install -v .
+pip install pytest
 pytest
 ```
 
