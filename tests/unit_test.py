@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from hapcut2_mec_solver import MECSolver, solve_MEC, AlleleMatrix
+from hapcut2_mec_solver import MECSolver, solve_MEC, AlleleMatrix, cli
 
 def test_readme():
     from hapcut2_mec_solver import MECSolver, solve_MEC
@@ -109,6 +109,26 @@ def test_sparse_matrix():
     result2 = MECSolver(matrix2).solve()
 
     assert result1 == result2
+
+
+def test_cli():
+    from io import StringIO
+    import json
+
+    io = StringIO()
+    cli.main(args=["[[0, 1, 0], [1, 0, 1]]"], file=io)
+    result = json.loads(io.getvalue()) 
+    assert set(tuple(haplotype) for haplotype in result['haplotypes']) == {(0, 1, 0), (1, 0, 1)}
+
+    io = StringIO()
+    cli.main(args=["tests/test.json"], file=io)
+    result = json.loads(io.getvalue()) 
+    assert set(tuple(haplotype) for haplotype in result['haplotypes']) == {(0, 1, 0), (1, 0, 1)}
+
+    io = StringIO()
+    cli.main(args=["tests/test.npz"], file=io)
+    result = json.loads(io.getvalue()) 
+    assert set(tuple(haplotype) for haplotype in result['haplotypes']) == {(0, 1, 0), (1, 0, 1)}
 
 
 

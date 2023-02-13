@@ -3,7 +3,7 @@ WORKDIR /usr/local/hapcut2_mec_solver
 RUN pip install pip==22.3.1 setuptools==67.0.0 pandas==1.5.3 pytest==7.2.1 scipy==1.10.0
 COPY . /usr/local/hapcut2_mec_solver
 RUN pip install -v .
+# RUN python -m hapcut2_mec_solver < tests/test.json
 RUN pytest
-RUN python -m hapcut2_mec_solver < tests/test.json
 
 

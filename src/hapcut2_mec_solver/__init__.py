@@ -6,4 +6,5 @@ __email__ = "jzhang@well.ox.ac.uk"
 
 
 from .hapcut2_mec_solver import AlleleMatrix, MECSolver, solve_MEC
+from . import cli
 
