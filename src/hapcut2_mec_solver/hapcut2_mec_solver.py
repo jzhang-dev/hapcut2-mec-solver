@@ -36,13 +36,11 @@ class _MECSolverResult:
 class MECSolver:
     def __init__(self, matrix: AlleleMatrix):
         self.matrix: AlleleMatrix = matrix
-        empty_variants:list[int] = []
+        empty_variants: list[int] = []
         for j in range(self.n_variant):
             if all(matrix[i][j] < 0 for i in range(self.n_fragment)):
                 empty_variants.append(j)
         self._empty_variants = empty_variants
-        
-
 
     @property
     def n_variant(self) -> int:
@@ -143,7 +141,13 @@ class MECSolver:
             f.write("".join(fragment_lines))
 
     def _run_hapcut2(
-        self, fragments_path: str, vcf_path: str, output_path: str, *, prune=False
+        self,
+        fragments_path: str,
+        vcf_path: str,
+        output_path: str,
+        *,
+        prune=False,
+        call_homozygous=False,
     ) -> None:
         directory = os.path.commonprefix([fragments_path, vcf_path, output_path])
         command = [
@@ -156,6 +160,8 @@ class MECSolver:
             output_path,
             "--outvcf",
             "0",
+            "--call_homozygous",
+            "1" if call_homozygous else "0",
             "--new_format",
             "1",
             "--verbose",
@@ -166,7 +172,6 @@ class MECSolver:
         process = subprocess.run(command, capture_output=True, encoding="utf-8")
         # if process.returncode != 0:
         #     raise RuntimeError(f"Failed to run HapCUT2: \n{process.stderr}")
-
 
     def _parse_hapcut2_result(self, file_path: str) -> tuple[Haplotype, Haplotype]:
         haplotype_0: list[int] = []
@@ -188,7 +193,6 @@ class MECSolver:
             haplotype_1.insert(j, -1)
 
         return (tuple(haplotype_0), tuple(haplotype_1))
-
 
     @staticmethod
     def _get_cost(haplotype: Haplotype, fragment: Fragment) -> int:
@@ -217,14 +221,16 @@ class MECSolver:
             total_cost += min_cost
         return tuple(partition), total_cost
 
-    def solve(self) -> _MECSolverResult:
+    def solve(self, *, call_homozygous=False) -> _MECSolverResult:
         with tempfile.TemporaryDirectory() as temp_directory:
             vcf_path = os.path.join(temp_directory, "variants.vcf")
             fragments_path = os.path.join(temp_directory, "fragments.txt")
             output_path = os.path.join(temp_directory, "hapcut2.txt")
             self._make_vcf(self.n_variant, vcf_path)
             self._make_fragments(fragments_path)
-            self._run_hapcut2(fragments_path, vcf_path, output_path)
+            self._run_hapcut2(
+                fragments_path, vcf_path, output_path, call_homozygous=call_homozygous
+            )
             haplotypes = self._parse_hapcut2_result(output_path)
             partition, cost = self._partition_fragments(haplotypes)
             return _MECSolverResult(
@@ -232,8 +238,10 @@ class MECSolver:
             )
 
 
-def solve_MEC(allele_matrix: AlleleMatrix) -> tuple[Sequence[int], Sequence[int]]:
+def solve_MEC(
+    allele_matrix: AlleleMatrix, *, call_homozygous=False
+) -> tuple[Sequence[int], Sequence[int]]:
     solver = MECSolver(allele_matrix)
-    result = solver.solve()
+    result = solver.solve(call_homozygous=call_homozygous)
     haplotype_1, haplotype_2 = result.haplotypes
     return tuple(haplotype_1), tuple(haplotype_2)

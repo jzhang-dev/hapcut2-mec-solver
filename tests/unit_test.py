@@ -21,6 +21,16 @@ def test_simple_matrix():
     assert set(haplotypes) == {(0, 1, 0), (1, 0, 1)}
 
 
+def test_homozygous_variants():
+    # See https://github.com/vibansal/HapCUT2/issues/110
+    # See https://github.com/vibansal/HapCUT2/blob/66ee827f9130fa64ff93044227702804308f1650/hapcut2-src/optionparser.c#L23
+    
+    # The second variant is homozygous
+    allele_matrix = [[0, 1, 0] for _ in range(500)] + [[1, 1, 1] for _ in range(500)]
+    haplotypes = solve_MEC(allele_matrix, call_homozygous=True)
+    assert set(haplotypes) == {(0, 1, 0), (1, 1, 1)}
+
+
 def test_ambiguous_matrix():
     # Read #3 conflicts with Read #2 at Variant #2. Without additional evidence, Variant #2 is ambiguous.
     allele_matrix = [[0, 1, 0], [1, 0, 1], [1, 1, 1]]

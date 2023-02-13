@@ -85,7 +85,7 @@ pytest
 
 ## Notes
 
-- HapCUT2 assumes all variants are heterozygous even if only one allele is seen in the fragments. For example, fragments `[[1, 0, 1], [1, 0, 1], [0, 1, 1]]` will be solved as haplotypes `[[1, 0, 1], [0, 1, 0]]`. 
+- HapCUT2 assumes all variants are heterozygous by default even if only one allele is seen in the fragments. For example, fragments `[[1, 0, 1], [1, 0, 1], [0, 1, 1]]` will be solved as haplotypes `[[1, 0, 1], [0, 1, 0]]`. Although a [`--call_homozygous` option](https://github.com/vibansal/HapCUT2/blob/66ee827f9130fa64ff93044227702804308f1650/hapcut2-src/optionparser.c#L201) is availble in HapCUT2, the prior probablity of a variant being homozygous is [hard-coded to be extremely small](https://github.com/vibansal/HapCUT2/blob/66ee827f9130fa64ff93044227702804308f1650/hapcut2-src/optionparser.c#L23), preventing a variant to be called homozygous in most cases. See [this issue](https://github.com/vibansal/HapCUT2/issues/110) for further discussions.  
 - Fragments that contain only `-1` will be assigned `-1` in the output partitions. Variants that contain only `-1` will show as `-1` in the output haplotypes. 
 - HapCUT2 harnesses a heuristic algorithm to appoach the $\mathcal{NP}$-hard MEC problem. HapCUT2 is not guaranteed to find the theoretically optimal solution. In contrast, [WhatsHap](https://whatshap.readthedocs.io/en/latest/) always finds the theoretically optimal solution with the lowest cost, but has $\mathit{O}(exp(n))$ time complexity, where $n$ is the maximum coverage of the variants. See also [WhatsHap wMEC solver](https://github.com/jzhang-dev/whatshap-wmec-solver).
 
