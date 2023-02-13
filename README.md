@@ -62,16 +62,16 @@ Example usage:
 ```py
 >>> from hapcut2_mec_solver import MECSolver, solve_MEC
 
->>> allele_matrix = [[0, 0, 1, 1], [1, 1, 0, 0]]
->>> haplotypes = solve_MEC(allele_matrix)
->>> assert set(haplotypes) == {(0, 0, 1, 1), (1, 1, 0, 0)}
+>>> fragments = [[0, 0, 1, 1], [1, 1, 0, 0]]
+>>> haplotypes = solve_MEC(fragments)
+>>> set(haplotypes) == {(0, 0, 1, 1), (1, 1, 0, 0)}
 True
 
->>> allele_matrix = [[0, 1, 0], [1, 0, 1], [1, -1, 1], [1, 1, -1]]
->>> result = MECSolver(allele_matrix).solve()
->>> assert result.cost == 1
+>>> fragments = [[0, 1, 0], [1, 0, 1], [1, -1, 1], [1, 1, -1]]
+>>> result = MECSolver.from_fragments(fragments).solve()
+>>> result.cost == 1
 True
->>> assert result.partition in [(0, 1, 1, 0), (1, 0, 0, 1), (0, 1, 1, 1), (1, 0, 0, 0)]
+>>> result.partition in [(0, 1, 1, 0), (1, 0, 0, 1), (0, 1, 1, 1), (1, 0, 0, 0)]
 True
 ```
 

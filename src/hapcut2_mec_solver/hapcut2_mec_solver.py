@@ -2,22 +2,54 @@
 # coding: utf-8
 
 from __future__ import annotations
-from typing import Sequence
+from typing import Sequence, IO, Iterator
 import collections
 import os
 from dataclasses import dataclass
 import json
 import subprocess
 import tempfile
+import numpy as np
 import pandas as pd
+from scipy.sparse import csr_array, save_npz, load_npz
+
 
 # Type aliases
 Fragment = Sequence[int]
 Haplotype = Sequence[int]
-AlleleMatrix = Sequence[Fragment]
+# AlleleMatrix = Sequence[Fragment]
 
 
-@dataclass
+class AlleleMatrix:
+    def __init__(self, sparse_matrix: csr_array):
+        self._sparse_matrix = sparse_matrix
+
+    @classmethod
+    def from_fragments(cls, fragments: Sequence[Fragment]):
+        dense_matrix = np.array(fragments, dtype=np.int8)
+        sparse_matrix: csr_array = csr_array(dense_matrix + 1, dtype=np.int8)
+        return cls(sparse_matrix)
+
+    def __getitem__(self, key) -> Sequence[int]:
+        row = self._sparse_matrix.getrow(key).toarray() - 1
+        return row.tolist()[0]
+
+    def to_npz(self, file: str | IO) -> None:
+        save_npz(file, self._sparse_matrix)
+
+    @classmethod
+    def from_npz(cls, file: str | IO):
+        return cls(load_npz(file))
+
+    def __len__(self) -> int:
+        return self._sparse_matrix.shape[0]
+
+    def __iter__(self) -> Iterator[Sequence[int]]:
+        for i in range(len(self)):
+            yield self[i]
+
+
+@dataclass(eq=True)
 class _MECSolverResult:
     haplotypes: tuple[Haplotype, Haplotype]
     partition: Sequence[int]
@@ -41,6 +73,13 @@ class MECSolver:
             if all(matrix[i][j] < 0 for i in range(self.n_fragment)):
                 empty_variants.append(j)
         self._empty_variants = empty_variants
+
+
+    @classmethod
+    def from_fragments(cls, fragments: Sequence[Fragment]):
+        matrix = AlleleMatrix.from_fragments(fragments)
+        return cls(matrix)
+
 
     @property
     def n_variant(self) -> int:
@@ -239,9 +278,9 @@ class MECSolver:
 
 
 def solve_MEC(
-    allele_matrix: AlleleMatrix, *, call_homozygous=False
+    fragments: Sequence[Fragment], *, call_homozygous=False
 ) -> tuple[Sequence[int], Sequence[int]]:
-    solver = MECSolver(allele_matrix)
+    solver = MECSolver.from_fragments(fragments)
     result = solver.solve(call_homozygous=call_homozygous)
     haplotype_1, haplotype_2 = result.haplotypes
     return tuple(haplotype_1), tuple(haplotype_2)
