@@ -21,6 +21,14 @@ def parse_cli_arguments(args: Sequence[str] | None = None) -> argparse.Namespace
         help="The allele matrix file in json or npz format, with each row representing a fragment and each column representing a variant. Alternatively, the allele matrix can be supplied as a JSON string wrapped in quotes.",
     )
     parser.add_argument(
+        "--latency-wait",
+        metavar="SECONDS",
+        dest="latency_wait",
+        default=5,
+        type=int,
+        help="Number of seconds to wait after HapCUT2 exits before parsing the results.",
+    )
+    parser.add_argument(
         "--verbose", action="store_true", help="Print debugging information to STDERR"
     )
 
@@ -60,6 +68,10 @@ def main(args: Sequence[str] | None = None) -> None:
     matrix = load_allele_matrix(parsed_args.matrix)
     if parsed_args.verbose:
         n_row, n_col = matrix.shape
-        print(f"Loaded allele matrix with {n_row} rows and {n_col} columns", file=sys.stderr, flush=True)
-    result = MECSolver(matrix).solve(verbose=parsed_args.verbose)
+        print(
+            f"Loaded allele matrix with {n_row} rows and {n_col} columns",
+            file=sys.stderr,
+            flush=True,
+        )
+    result = MECSolver(matrix).solve(verbose=parsed_args.verbose, latency_wait=parsed_args.latency_wait)
     print(result.to_json(), file=sys.stdout, flush=True)
