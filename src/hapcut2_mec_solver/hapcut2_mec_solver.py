@@ -289,7 +289,7 @@ class MECSolver:
         return tuple(partition), total_cost
 
     def solve(
-        self, *, call_homozygous=False, latency_wait: float = 1, verbose=False
+        self, *, call_homozygous=False, latency_wait: float = 2, verbose=False
     ) -> _MECSolverResult:
         with tempfile.TemporaryDirectory() as temp_directory:
             vcf_path = os.path.join(temp_directory, "variants.vcf")
