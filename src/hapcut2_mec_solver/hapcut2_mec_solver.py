@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Sequence, IO, Iterator
 import collections
 import os
+import sys
 from dataclasses import dataclass
 import json
 import time
@@ -185,6 +186,7 @@ class MECSolver:
         *,
         prune=False,
         call_homozygous=False,
+        verbose=False,
     ) -> None:
         directory = os.path.commonprefix([fragments_path, vcf_path, output_path])
         command = [
@@ -206,9 +208,17 @@ class MECSolver:
             "--error_analysis_mode",
             str(int(not prune)),
         ]
-        process = subprocess.run(command, capture_output=True, encoding="utf-8")
-        # if process.returncode != 0:
-        #     raise RuntimeError(f"Failed to run HapCUT2: \n{process.stderr}")
+        with subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+        ) as process:
+            if verbose and process.stderr is not None:
+                for line in process.stderr:
+                    print(line, file=sys.stderr)
+            process.communicate()
 
     def _parse_hapcut2_result(self, file_path: str) -> tuple[Haplotype, Haplotype]:
         haplotype_0: list[int] = []
@@ -266,7 +276,7 @@ class MECSolver:
         return tuple(partition), total_cost
 
     def solve(
-        self, *, call_homozygous=False, latency_wait: float = 1
+        self, *, call_homozygous=False, latency_wait: float = 1, verbose=False
     ) -> _MECSolverResult:
         with tempfile.TemporaryDirectory() as temp_directory:
             vcf_path = os.path.join(temp_directory, "variants.vcf")
@@ -275,7 +285,7 @@ class MECSolver:
             self._make_vcf(self.n_variant, vcf_path)
             self._make_fragments(fragments_path)
             self._run_hapcut2(
-                fragments_path, vcf_path, output_path, call_homozygous=call_homozygous
+                fragments_path, vcf_path, output_path, call_homozygous=call_homozygous, verbose=verbose
             )
             time.sleep(latency_wait)
             try:
@@ -291,9 +301,9 @@ class MECSolver:
 
 
 def solve_MEC(
-    fragments: Sequence[Fragment], *, call_homozygous=False
+    fragments: Sequence[Fragment], *, call_homozygous=False, **kw
 ) -> tuple[Sequence[int], Sequence[int]]:
     solver = MECSolver.from_fragments(fragments)
-    result = solver.solve(call_homozygous=call_homozygous)
+    result = solver.solve(call_homozygous=call_homozygous, **kw)
     haplotype_1, haplotype_2 = result.haplotypes
     return tuple(haplotype_1), tuple(haplotype_2)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from contextlib import redirect_stdout, redirect_stderr
 from hapcut2_mec_solver import MECSolver, solve_MEC, AlleleMatrix, cli
 
 def test_readme():
@@ -116,19 +117,27 @@ def test_cli():
     import json
 
     io = StringIO()
-    cli.main(args=["[[0, 1, 0], [1, 0, 1]]"], file=io)
+    with redirect_stdout(io):
+        cli.main(args=["[[0, 1, 0], [1, 0, 1]]"])
     result = json.loads(io.getvalue()) 
     assert set(tuple(haplotype) for haplotype in result['haplotypes']) == {(0, 1, 0), (1, 0, 1)}
 
     io = StringIO()
-    cli.main(args=["tests/test.json"], file=io)
+    with redirect_stdout(io):
+        cli.main(args=["tests/test.json"])
     result = json.loads(io.getvalue()) 
     assert set(tuple(haplotype) for haplotype in result['haplotypes']) == {(0, 1, 0), (1, 0, 1)}
 
     io = StringIO()
-    cli.main(args=["tests/test.npz"], file=io)
+    with redirect_stdout(io):
+        cli.main(args=["tests/test.npz"])
     result = json.loads(io.getvalue()) 
     assert set(tuple(haplotype) for haplotype in result['haplotypes']) == {(0, 1, 0), (1, 0, 1)}
+
+    io = StringIO()
+    with redirect_stderr(io):
+        cli.main(args=["tests/test.npz", "--verbose"])
+    assert len(io.getvalue().splitlines()) >= 30
 
 
 
