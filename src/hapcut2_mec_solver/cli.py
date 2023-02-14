@@ -21,7 +21,7 @@ def parse_cli_arguments(args: Sequence[str] | None = None) -> argparse.Namespace
         help="The allele matrix file in json or npz format, with each row representing a fragment and each column representing a variant. Alternatively, the allele matrix can be supplied as a JSON string wrapped in quotes.",
     )
     parser.add_argument(
-        "--verbose", action="store_true", help="Pipe HapCUT2 STDERR to STDERR."
+        "--verbose", action="store_true", help="Print debugging information to STDERR"
     )
 
     parsed_args = parser.parse_args(args)
@@ -55,6 +55,11 @@ def load_allele_matrix(matrix_arg: str) -> AlleleMatrix:
 
 def main(args: Sequence[str] | None = None) -> None:
     parsed_args = parse_cli_arguments(args=args)
+    if parsed_args.verbose:
+        print("Loading allele matrix", file=sys.stderr, flush=True)
     matrix = load_allele_matrix(parsed_args.matrix)
+    if parsed_args.verbose:
+        n_row, n_col = matrix.shape
+        print(f"Loaded allele matrix with {n_row} rows and {n_col} columns", file=sys.stderr, flush=True)
     result = MECSolver(matrix).solve(verbose=parsed_args.verbose)
     print(result.to_json(), file=sys.stdout, flush=True)

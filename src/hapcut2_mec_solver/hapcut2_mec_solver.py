@@ -42,8 +42,12 @@ class AlleleMatrix:
     def from_npz(cls, file: str | IO):
         return cls(load_npz(file))
 
+    @property
+    def shape(self) -> tuple[int, int]:
+        return self._sparse_matrix.shape
+
     def __len__(self) -> int:
-        return self._sparse_matrix.shape[0]
+        return self.shape[0]
 
     def __iter__(self) -> Iterator[Sequence[int]]:
         for i in range(len(self)):
@@ -217,7 +221,7 @@ class MECSolver:
         ) as process:
             if verbose and process.stderr is not None:
                 for line in process.stderr:
-                    print(line, file=sys.stderr)
+                    print(line, file=sys.stderr, flush=True)
             process.communicate()
 
     def _parse_hapcut2_result(self, file_path: str) -> tuple[Haplotype, Haplotype]:
@@ -282,18 +286,28 @@ class MECSolver:
             vcf_path = os.path.join(temp_directory, "variants.vcf")
             fragments_path = os.path.join(temp_directory, "fragments.txt")
             output_path = os.path.join(temp_directory, "hapcut2.txt")
+            if verbose:
+                print(f"Making input VCF file for HapCUT2", file=sys.stderr, flush=True)
             self._make_vcf(self.n_variant, vcf_path)
+            if verbose:
+                print(f"Making input fragment file for HapCUT2", file=sys.stderr, flush=True)
             self._make_fragments(fragments_path)
+            if verbose:
+                print(f"Running HapCUT2", file=sys.stderr, flush=True)
             self._run_hapcut2(
                 fragments_path, vcf_path, output_path, call_homozygous=call_homozygous, verbose=verbose
             )
             time.sleep(latency_wait)
+            if verbose:
+                print("Parsing HapCUT2 output", file=sys.stderr, flush=True)
             try:
                 haplotypes = self._parse_hapcut2_result(output_path)
             except IOError:
                 raise IOError(
                     "Failed to read HapCUT2 output file. Try setting a larger value for `latency_wait`."
                 )
+            if verbose:
+                print("Partitioning fragments", file=sys.stderr, flush=True)
             partition, cost = self._partition_fragments(haplotypes)
             return _MECSolverResult(
                 haplotypes=haplotypes, partition=partition, cost=cost
