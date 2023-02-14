@@ -39,22 +39,15 @@ def parse_cli_arguments(args: Sequence[str] | None = None) -> argparse.Namespace
 def load_allele_matrix(matrix_arg: str) -> AlleleMatrix:
     fragments: Sequence[Sequence[int]] = []
     try:
-        fragments = json.loads(matrix_arg)
+        return AlleleMatrix.from_json_string(matrix_arg)
     except Exception:
         pass
 
-    if fragments:
-        matrix = AlleleMatrix.from_fragments(fragments)
-        return matrix
-
     extension: str = os.path.splitext(matrix_arg)[1]
     if extension == ".json":
-        with open(matrix_arg, "rt") as f:
-            matrix = AlleleMatrix.from_fragments(json.load(f))
-        return matrix
+        return AlleleMatrix.from_json(matrix_arg)
     elif extension == ".npz":
-        matrix = AlleleMatrix.from_npz(matrix_arg)
-        return matrix
+        return AlleleMatrix.from_npz(matrix_arg)
     else:
         raise ValueError(
             f"Invalid file extension: {extension!r}. Expecting .json or .npz format."
@@ -79,5 +72,7 @@ def main(args: Sequence[str] | None = None) -> None:
             flush=True,
         )
     solver = MECSolver(matrix)
-    result = solver.solve(verbose=parsed_args.verbose, latency_wait=parsed_args.latency_wait)
+    result = solver.solve(
+        verbose=parsed_args.verbose, latency_wait=parsed_args.latency_wait
+    )
     print(result.to_json(), file=sys.stdout, flush=True)
