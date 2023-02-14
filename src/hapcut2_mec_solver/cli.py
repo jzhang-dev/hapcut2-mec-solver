@@ -73,5 +73,11 @@ def main(args: Sequence[str] | None = None) -> None:
             file=sys.stderr,
             flush=True,
         )
-    result = MECSolver(matrix).solve(verbose=parsed_args.verbose, latency_wait=parsed_args.latency_wait)
+        print(
+            f"Initializing MEC solver",
+            file=sys.stderr,
+            flush=True,
+        )
+    solver = MECSolver(matrix)
+    result = solver.solve(verbose=parsed_args.verbose, latency_wait=parsed_args.latency_wait)
     print(result.to_json(), file=sys.stdout, flush=True)

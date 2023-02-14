@@ -12,6 +12,7 @@ import time
 import subprocess
 import tempfile
 import numpy as np
+from numpy.typing import NDArray
 import pandas as pd
 from scipy.sparse import csr_array, save_npz, load_npz
 
@@ -53,6 +54,18 @@ class AlleleMatrix:
         for i in range(len(self)):
             yield self[i]
 
+    def _column_sum(self) -> NDArray:
+        return np.squeeze(np.asarray(self._sparse_matrix.sum(axis=0)))
+
+    def _row_sum(self) -> NDArray:
+        return np.squeeze(np.asarray(self._sparse_matrix.sum(axis=1)))
+
+    def get_empty_column_indices(self) -> Sequence[int]:
+        return [j for j, total in enumerate(self._column_sum()) if total == 0]
+
+    def get_empty_row_indices(self) -> Sequence[int]:
+        return [i for i, total in enumerate(self._row_sum()) if total == 0]
+
 
 @dataclass(eq=True)
 class _MECSolverResult:
@@ -73,11 +86,7 @@ class _MECSolverResult:
 class MECSolver:
     def __init__(self, matrix: AlleleMatrix):
         self.matrix: AlleleMatrix = matrix
-        empty_variants: list[int] = []
-        for j in range(self.n_variant):
-            if all(matrix[i][j] < 0 for i in range(self.n_fragment)):
-                empty_variants.append(j)
-        self._empty_variants = empty_variants
+        self._empty_variants = matrix.get_empty_column_indices()
 
     @classmethod
     def from_fragments(cls, fragments: Sequence[Fragment]):
@@ -86,11 +95,11 @@ class MECSolver:
 
     @property
     def n_variant(self) -> int:
-        return len(self.matrix[0])
+        return self.matrix.shape[1]
 
     @property
     def n_fragment(self) -> int:
-        return len(self.matrix)
+        return self.matrix.shape[0]
 
     @staticmethod
     def _make_vcf(
@@ -290,12 +299,20 @@ class MECSolver:
                 print(f"Making input VCF file for HapCUT2", file=sys.stderr, flush=True)
             self._make_vcf(self.n_variant, vcf_path)
             if verbose:
-                print(f"Making input fragment file for HapCUT2", file=sys.stderr, flush=True)
+                print(
+                    f"Making input fragment file for HapCUT2",
+                    file=sys.stderr,
+                    flush=True,
+                )
             self._make_fragments(fragments_path)
             if verbose:
                 print(f"Running HapCUT2", file=sys.stderr, flush=True)
             self._run_hapcut2(
-                fragments_path, vcf_path, output_path, call_homozygous=call_homozygous, verbose=verbose
+                fragments_path,
+                vcf_path,
+                output_path,
+                call_homozygous=call_homozygous,
+                verbose=verbose,
             )
             time.sleep(latency_wait)
             if verbose:
