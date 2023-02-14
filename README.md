@@ -15,7 +15,7 @@ For an allele matrix with *n* rows and *m* columns, the output includes:
 
 
 
-The input allele matrix can be supplied using either the [JSON](https://en.wikipedia.org/wiki/JSON) format, or as [a .npz file](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.load_npz.html#scipy-sparse-load-npz) containing a [sparse CSR matrix](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy-sparse-csr-matrix). In both cases, the output will be a specified using the JSON format. 
+The input allele matrix can be supplied using either the [JSON](https://en.wikipedia.org/wiki/JSON) format, or as a [.npz file](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.load_npz.html#scipy-sparse-load-npz) containing a [sparse CSR matrix](https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy-sparse-csr-matrix). In both cases, the output will be a specified using the JSON format. 
 
 For JSON input, the allowed values are `0` (Allele 0), `1` (Allele 1) and `-1` (unknown allele), following the convention of MEC problems. For sparse matrix input, the allowed values are `1` (Allele 0), `2` (Allele 1) and `0` (unknown allele), following the convention of sparse matrices. The output always uses `{-1, 0, 1}` values for alleles.
 
