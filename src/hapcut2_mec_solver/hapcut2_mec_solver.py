@@ -214,8 +214,10 @@ class MECSolver:
         haplotype_0: list[int] = []
         haplotype_1: list[int] = []
 
+        file_is_empty: bool = True
         with open(file_path, "r") as f:
             for line in f:
+                file_is_empty = False
                 if line.startswith("BLOCK"):
                     continue
                 elif line.startswith("*"):
@@ -224,6 +226,11 @@ class MECSolver:
                     columns = line.strip("\n").split("\t")
                     haplotype_0.append(int(columns[1]) if columns[1] != "-" else -1)
                     haplotype_1.append(int(columns[2]) if columns[2] != "-" else -1)
+
+        if file_is_empty:
+            raise IOError("HapCUT2 output file is empty.")
+        if len(haplotype_0) == 0 or len(haplotype_1) == 0:
+            raise RuntimeError("Failed to parse HapCUT2 output file.")
 
         for j in self._empty_variants:
             haplotype_0.insert(j, -1)
@@ -271,7 +278,12 @@ class MECSolver:
                 fragments_path, vcf_path, output_path, call_homozygous=call_homozygous
             )
             time.sleep(latency_wait)
-            haplotypes = self._parse_hapcut2_result(output_path)
+            try:
+                haplotypes = self._parse_hapcut2_result(output_path)
+            except IOError:
+                raise IOError(
+                    "Failed to read HapCUT2 output file. Try setting a larger value for `latency_wait`."
+                )
             partition, cost = self._partition_fragments(haplotypes)
             return _MECSolverResult(
                 haplotypes=haplotypes, partition=partition, cost=cost
