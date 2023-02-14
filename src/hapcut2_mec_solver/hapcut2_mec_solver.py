@@ -7,6 +7,7 @@ import collections
 import os
 from dataclasses import dataclass
 import json
+import time
 import subprocess
 import tempfile
 import numpy as np
@@ -17,7 +18,6 @@ from scipy.sparse import csr_array, save_npz, load_npz
 # Type aliases
 Fragment = Sequence[int]
 Haplotype = Sequence[int]
-# AlleleMatrix = Sequence[Fragment]
 
 
 class AlleleMatrix:
@@ -74,12 +74,10 @@ class MECSolver:
                 empty_variants.append(j)
         self._empty_variants = empty_variants
 
-
     @classmethod
     def from_fragments(cls, fragments: Sequence[Fragment]):
         matrix = AlleleMatrix.from_fragments(fragments)
         return cls(matrix)
-
 
     @property
     def n_variant(self) -> int:
@@ -260,7 +258,9 @@ class MECSolver:
             total_cost += min_cost
         return tuple(partition), total_cost
 
-    def solve(self, *, call_homozygous=False) -> _MECSolverResult:
+    def solve(
+        self, *, call_homozygous=False, latency_wait: float = 1
+    ) -> _MECSolverResult:
         with tempfile.TemporaryDirectory() as temp_directory:
             vcf_path = os.path.join(temp_directory, "variants.vcf")
             fragments_path = os.path.join(temp_directory, "fragments.txt")
@@ -270,6 +270,7 @@ class MECSolver:
             self._run_hapcut2(
                 fragments_path, vcf_path, output_path, call_homozygous=call_homozygous
             )
+            time.sleep(latency_wait)
             haplotypes = self._parse_hapcut2_result(output_path)
             partition, cost = self._partition_fragments(haplotypes)
             return _MECSolverResult(
