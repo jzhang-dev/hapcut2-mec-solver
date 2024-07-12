@@ -119,9 +119,10 @@ class _MECSolverResult:
 
 
 class MECSolver:
-    def __init__(self, matrix: AlleleMatrix):
+    def __init__(self, matrix: AlleleMatrix, hapcut2_path="hapcut2"):
         self.matrix: AlleleMatrix = matrix
         self._empty_loci = matrix.get_empty_loci()
+        self._hapcut2_path = hapcut2_path
 
     @classmethod
     def from_fragments(cls, fragments: Sequence[Sequence[int]]):
@@ -238,7 +239,7 @@ class MECSolver:
     ) -> None:
         directory = os.path.commonprefix([fragments_path, vcf_path, output_path])
         command = [
-            "hapcut2",
+            self._hapcut2_path,
             "--fragments",
             fragments_path,
             "--VCF",
