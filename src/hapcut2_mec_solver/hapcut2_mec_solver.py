@@ -38,7 +38,7 @@ class AlleleMatrix:
         return cls(sparse_matrix)
 
     def get_fragment(self, i: int) -> NDArray:
-        return self._sparse_matrix.getrow(i).toarray()[0]
+        return self._sparse_matrix[[i]].toarray()[0]
 
     def to_npz(self, file: str | IO) -> None:
         save_npz(file, self._sparse_matrix)
@@ -86,7 +86,7 @@ class AlleleMatrix:
         return [i for i, total in enumerate(self._row_sum()) if total == 0]
 
     def get_nonzero_loci(self, i: int) -> Sequence[int]:
-        return self._sparse_matrix.getrow(i).nonzero()[1]
+        return self._sparse_matrix[[i]].nonzero()[1]
 
 
 @dataclass(eq=True)
@@ -237,7 +237,6 @@ class MECSolver:
         call_homozygous=False,
         verbose=False,
     ) -> None:
-        directory = os.path.commonprefix([fragments_path, vcf_path, output_path])
         command = [
             self._hapcut2_path,
             "--fragments",
@@ -268,6 +267,8 @@ class MECSolver:
                 for line in process.stderr:
                     print(line, file=sys.stderr, flush=True)
             process.communicate()
+            if process.returncode != 0:
+                raise RuntimeError("Failed to run HapCUT2.")
 
     def _parse_hapcut2_result(self, file_path: str) -> tuple[NDArray, NDArray]:
         haplotype_0: list[int] = []
@@ -373,7 +374,7 @@ class MECSolver:
 
 def solve_MEC(
     fragments: Sequence[Sequence[int]], *, call_homozygous=False, **kw
-) -> tuple[tuple[Sequence[int], Sequence[int]], Sequence[int], int]:
+) -> tuple[tuple[Sequence[int], Sequence[int]], Sequence[int], float]:
     solver = MECSolver.from_fragments(fragments)
     result = solver.solve(call_homozygous=call_homozygous, **kw)
     haplotype_1, haplotype_2 = result.haplotypes
